@@ -155,7 +155,7 @@ const Home = () => {
             </div>
 
             {showPasswordInput && (
-                <div style={{ marginTop: '20px' }}>
+                <div className={styles.passwordInputContainer}>
                     <input
                         type="password"
                         value={password}
@@ -164,8 +164,17 @@ const Home = () => {
                         placeholder="비밀번호"
                         className={styles.input}
                     />
-                    <button onClick={handleLogin} className={styles.button}>로그인</button>
-                    {error && <p style={{ color: 'red' }}>{error}</p>}
+                    <button 
+                        onClick={handleLogin} 
+                        className={`${styles.button} ${styles.loginButton}`}
+                        style={{ 
+                            padding: '8px 16px',
+                            fontSize: '0.9rem'
+                        }}
+                    >
+                        로그인
+                    </button>
+                    {error && <p style={{ color: 'red', fontSize: '0.8rem' }}>{error}</p>}
                 </div>
             )}
         </div>
