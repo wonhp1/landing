@@ -101,7 +101,11 @@ const Home = () => {
                     <div className={styles.videoSection}>
                         <div className={styles.videoWrapper}>
                             <iframe
-                                src={section.content.replace('watch?v=', 'embed/')}
+                                src={section.content.includes('youtube.com/watch?v=') 
+                                    ? section.content.replace('youtube.com/watch?v=', 'youtube.com/embed/')
+                                    : section.content.includes('youtu.be/')
+                                    ? section.content.replace('youtu.be/', 'youtube.com/embed/')
+                                    : section.content}
                                 title="YouTube video"
                                 frameBorder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
