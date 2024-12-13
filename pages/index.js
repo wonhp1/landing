@@ -9,21 +9,20 @@ const Home = () => {
     const [password, setPassword] = useState('');
     const [error, setError] = useState('');
     const [showPasswordInput, setShowPasswordInput] = useState(false);
-    const [introContent, setIntroContent] = useState(null);
+    const [sections, setSections] = useState([]);
 
     useEffect(() => {
-        // 소개 콘텐츠 데이터 가져오기
-        const fetchIntroContent = async () => {
+        const fetchSections = async () => {
             try {
                 const response = await fetch('/api/intro-content');
                 const data = await response.json();
-                setIntroContent(data);
+                setSections(data.sections || []);
             } catch (error) {
-                console.error('Error fetching intro content:', error);
+                console.error('Error fetching sections:', error);
             }
         };
 
-        fetchIntroContent();
+        fetchSections();
     }, []);
 
     const handleLogin = async () => {
@@ -63,41 +62,77 @@ const Home = () => {
         setError('');
     };
 
+    const renderSection = (section) => {
+        switch (section.type) {
+            case 'text':
+                return (
+                    <div 
+                        style={{
+                            backgroundColor: section.backgroundColor,
+                            color: section.textColor,
+                            fontSize: section.fontSize,
+                            fontWeight: section.fontWeight,
+                            padding: '20px',
+                            borderRadius: '10px',
+                            margin: '20px 0'
+                        }}
+                    >
+                        {section.content}
+                    </div>
+                );
+            case 'image':
+                return (
+                    <div className={styles.imageSection}>
+                        <img 
+                            src={section.content}
+                            alt="소개 이미지"
+                            style={{
+                                maxWidth: '100%',
+                                height: 'auto',
+                                borderRadius: '10px',
+                                backgroundColor: section.backgroundColor,
+                                padding: '10px'
+                            }}
+                        />
+                    </div>
+                );
+            case 'video':
+                return (
+                    <div className={styles.videoSection}>
+                        <div className={styles.videoWrapper}>
+                            <iframe
+                                src={section.content.replace('watch?v=', 'embed/')}
+                                title="YouTube video"
+                                frameBorder="0"
+                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                allowFullScreen
+                                style={{
+                                    backgroundColor: section.backgroundColor,
+                                    padding: '10px',
+                                    borderRadius: '10px'
+                                }}
+                            />
+                        </div>
+                    </div>
+                );
+            default:
+                return null;
+        }
+    };
+
     return (
         <div className={styles.container}>
             <div className={styles.headerContainer}>
                 <h1 className={styles.title}>김경원 트레이너 홈페이지</h1>
             </div>
 
-            {introContent && (
-                <div className={styles.introSection}>
-                    {introContent.imageUrl && (
-                        <div className={styles.imageContainer}>
-                            <Image
-                                src={introContent.imageUrl}
-                                alt="프로필 이미지"
-                                width={300}
-                                height={300}
-                                objectFit="cover"
-                                className={styles.profileImage}
-                            />
-                        </div>
-                    )}
-                    <div 
-                        className={styles.introText}
-                        style={{
-                            backgroundColor: introContent.backgroundColor || 'transparent',
-                            color: introContent.textColor || '#000',
-                            fontSize: introContent.fontSize || '1rem',
-                            fontWeight: introContent.fontWeight || 'normal',
-                            padding: '20px',
-                            borderRadius: '10px',
-                            margin: '20px 0'
-                        }}
-                        dangerouslySetInnerHTML={{ __html: introContent.text }}
-                    />
-                </div>
-            )}
+            <div className={styles.introSections}>
+                {sections.map((section, index) => (
+                    <div key={section.id || index} className={styles.section}>
+                        {renderSection(section)}
+                    </div>
+                ))}
+            </div>
             
             <div className={styles.buttonContainer}>
                 <Link href="/reservations">
