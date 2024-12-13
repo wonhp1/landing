@@ -224,7 +224,7 @@ export default async function handler(req, res) {
                 console.log('Raw events data:', events);
                 
                 const memberEvents = events.filter(event => {
-                    const match = event.summary.match(/\((\d+)\)/);
+                    const match = event.summary.match(/\((.*?)\)/);
                     const eventTime = new Date(event.start.dateTime);
                     return match && 
                            match[1] === memberId && 

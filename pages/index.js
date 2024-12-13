@@ -10,19 +10,33 @@ const Home = () => {
     const [error, setError] = useState('');
     const [showPasswordInput, setShowPasswordInput] = useState(false);
     const [sections, setSections] = useState([]);
+    const [pageSettings, setPageSettings] = useState({
+        backgroundColor: '#f5f5f5',
+        headerBackgroundColor: '#ffffff',
+        headerTextColor: '#000000',
+        headerFontSize: '1.2rem',
+        headerFontWeight: 'normal'
+    });
 
     useEffect(() => {
-        const fetchSections = async () => {
+        const fetchData = async () => {
             try {
                 const response = await fetch('/api/intro-content');
                 const data = await response.json();
                 setSections(data.sections || []);
+                setPageSettings(data.pageSettings || {
+                    backgroundColor: '#f5f5f5',
+                    headerBackgroundColor: '#ffffff',
+                    headerTextColor: '#000000',
+                    headerFontSize: '1.2rem',
+                    headerFontWeight: 'normal'
+                });
             } catch (error) {
-                console.error('Error fetching sections:', error);
+                console.error('Error fetching data:', error);
             }
         };
 
-        fetchSections();
+        fetchData();
     }, []);
 
     const handleLogin = async () => {
@@ -110,11 +124,6 @@ const Home = () => {
                                 frameBorder="0"
                                 allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                                 allowFullScreen
-                                style={{
-                                    backgroundColor: section.backgroundColor,
-                                    padding: '10px',
-                                    borderRadius: '10px'
-                                }}
                             />
                         </div>
                     </div>
@@ -125,9 +134,23 @@ const Home = () => {
     };
 
     return (
-        <div className={styles.container}>
-            <div className={styles.headerContainer}>
-                <h1 className={styles.title}>김경원 트레이너 홈페이지</h1>
+        <div className={styles.container} style={{ backgroundColor: pageSettings.backgroundColor }}>
+            <div 
+                className={styles.headerContainer}
+                style={{
+                    backgroundColor: pageSettings.headerBackgroundColor
+                }}
+            >
+                <h1 
+                    className={styles.title}
+                    style={{
+                        color: pageSettings.headerTextColor,
+                        fontSize: pageSettings.headerFontSize,
+                        fontWeight: pageSettings.headerFontWeight
+                    }}
+                >
+                    김경원 트레이너 홈페이지
+                </h1>
             </div>
 
             <div className={styles.introSections}>

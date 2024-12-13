@@ -8,6 +8,13 @@ const IntroSettings = () => {
     const [isLoading, setIsLoading] = useState(false);
     const [saveError, setSaveError] = useState('');
     const [saveSuccess, setSaveSuccess] = useState(false);
+    const [pageSettings, setPageSettings] = useState({
+        backgroundColor: '#f5f5f5',
+        headerBackgroundColor: '#ffffff',
+        headerTextColor: '#000000',
+        headerFontSize: '1.2rem',
+        headerFontWeight: 'normal'
+    });
 
     useEffect(() => {
         const fetchCurrentSettings = async () => {
@@ -15,6 +22,13 @@ const IntroSettings = () => {
                 const response = await fetch('/api/intro-content');
                 const data = await response.json();
                 setSections(data.sections || []);
+                setPageSettings(data.pageSettings || {
+                    backgroundColor: '#f5f5f5',
+                    headerBackgroundColor: '#ffffff',
+                    headerTextColor: '#000000',
+                    headerFontSize: '1.2rem',
+                    headerFontWeight: 'normal'
+                });
             } catch (error) {
                 console.error('Error fetching settings:', error);
             }
@@ -58,7 +72,7 @@ const IntroSettings = () => {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ sections })
+                body: JSON.stringify({ sections, pageSettings })
             });
             
             if (!response.ok) {
@@ -156,6 +170,71 @@ const IntroSettings = () => {
             </button>
 
             <form onSubmit={handleSubmit} className={styles.form}>
+                <div className={styles.sectionContainer}>
+                    <h3>페이지 기본 설정</h3>
+                    <div className={styles.formGroup}>
+                        <label>페이지 배경색</label>
+                        <input
+                            type="color"
+                            value={pageSettings.backgroundColor}
+                            onChange={(e) => setPageSettings(prev => ({
+                                ...prev,
+                                backgroundColor: e.target.value
+                            }))}
+                        />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>헤더 배경색</label>
+                        <input
+                            type="color"
+                            value={pageSettings.headerBackgroundColor}
+                            onChange={(e) => setPageSettings(prev => ({
+                                ...prev,
+                                headerBackgroundColor: e.target.value
+                            }))}
+                        />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>헤더 글자색</label>
+                        <input
+                            type="color"
+                            value={pageSettings.headerTextColor}
+                            onChange={(e) => setPageSettings(prev => ({
+                                ...prev,
+                                headerTextColor: e.target.value
+                            }))}
+                        />
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>헤더 글자 크기</label>
+                        <select
+                            value={pageSettings.headerFontSize}
+                            onChange={(e) => setPageSettings(prev => ({
+                                ...prev,
+                                headerFontSize: e.target.value
+                            }))}
+                        >
+                            <option value="1rem">작게</option>
+                            <option value="1.2rem">보통</option>
+                            <option value="1.5rem">크게</option>
+                            <option value="2rem">매우 크게</option>
+                        </select>
+                    </div>
+                    <div className={styles.formGroup}>
+                        <label>헤더 글자 굵기</label>
+                        <select
+                            value={pageSettings.headerFontWeight}
+                            onChange={(e) => setPageSettings(prev => ({
+                                ...prev,
+                                headerFontWeight: e.target.value
+                            }))}
+                        >
+                            <option value="normal">보통</option>
+                            <option value="bold">굵게</option>
+                        </select>
+                    </div>
+                </div>
+
                 {sections.map((section, index) => (
                     <div key={section.id} className={styles.sectionContainer}>
                         <div className={styles.sectionHeader}>

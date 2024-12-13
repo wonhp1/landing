@@ -257,6 +257,7 @@ const ReservationsPage = () => {
     });
     const [reservationPeriod, setReservationPeriod] = useState(null);
     const [holidays, setHolidays] = useState([]);
+    const [phoneNumber, setPhoneNumber] = useState('');
 
     useEffect(() => {
         const initializePage = async () => {
@@ -388,77 +389,54 @@ const ReservationsPage = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        if (!selectedDate || !selectedTime) {
-            showTemporaryMessage('날짜와 시간을 선택해 주세요.', true);
+        if (!selectedDate || !selectedTime || !memberName || !phoneNumber) {
+            showTemporaryMessage('모든 정보를 입력해주세요.', true);
             return;
         }
-        if (!memberName || !memberId) {
-            showTemporaryMessage('회원 이름과 회원번호를 입력해 주세요.', true);
-            return;
-        }
-        if (memberId.length !== 4) {
-            showTemporaryMessage('회원번호는 4자리로 입력해 주세요.', true);
+
+        // 핸드폰 번호 형식 체크 (선택적)
+        const phoneRegex = /^[0-9]{10,11}$/;  // 10-11자리 숫자
+        if (!phoneRegex.test(phoneNumber.replace(/-/g, ''))) {
+            showTemporaryMessage('올바른 핸드폰 번호를 입력해주세요.', true);
             return;
         }
 
         setIsSubmitting(true);
 
         try {
-            // 회원 검증
-            const validateResponse = await fetch('/api/members/validate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    name: memberName,
-                    memberId: memberId
-                }),
-            });
-
-            const validateData = await validateResponse.json();
-
-            if (!validateData.isValid) {
-                showTemporaryMessage('유효하지 않은 회원정보입니다.', true);
-                setIsSubmitting(false);
-                return;
-            }
-
-            // 기존 예약 로직
-            const [hours] = selectedTime.split(':').map(Number);
-            const reservationDate = getKSTDate(selectedDate);
-            reservationDate.setHours(hours, 0, 0, 0);
-
-            const reservationData = {
-                dateTime: reservationDate.toISOString(),
-                memberName,
-                memberId,
-            };
+            setIsLoading(true);
+            const dateTime = new Date(selectedDate);
+            dateTime.setHours(parseInt(selectedTime), 0, 0, 0);
 
             const response = await fetch('/api/reservations', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify(reservationData),
+                body: JSON.stringify({
+                    dateTime: dateTime.toISOString(),
+                    memberName: memberName,
+                    memberId: phoneNumber.replace(/-/g, '')  // 하이픈 제거하고 저장
+                }),
             });
 
             const data = await response.json();
 
-            if (response.ok) {
-                showTemporaryMessage('예약이 완료되었습니다!');
-                setSelectedTime('');
-                setMemberName('');
-                setMemberId('');
-                checkBookedTimes(selectedDate);
-            } else {
-                showTemporaryMessage(data.error || '예약에 실패했습니다.', true);
+            if (!response.ok) {
+                throw new Error(data.error || '예약 실패');
             }
+
+            showTemporaryMessage('예약이 완료되었습니다!');
+            setSelectedTime('');
+            setMemberName('');
+            setPhoneNumber('');
+            checkBookedTimes(selectedDate);
         } catch (error) {
             console.error('예약 중 오류 발생:', error);
             showTemporaryMessage('예약 중 오류가 발생했습니다.', true);
         } finally {
             setIsSubmitting(false);
+            setIsLoading(false);
         }
     };
 
@@ -675,14 +653,20 @@ const ReservationsPage = () => {
                             placeholder="회원 이름"
                             value={memberName}
                             onChange={(e) => setMemberName(e.target.value)}
+                            className="input"
                         />
                         <input
-                            type="text"
-                            placeholder="회원번호 (4자리)"
-                            value={memberId}
-                            onChange={(e) => setMemberId(e.target.value)}
-                            maxLength={4}
+                            type="tel"
+                            placeholder="핸드폰 번호"
+                            value={phoneNumber}
+                            onChange={(e) => {
+                                const value = e.target.value.replace(/[^\d-]/g, '');
+                                setPhoneNumber(value);
+                            }}
+                            maxLength={13}  // 하이픈 포함 13자리
+                            className="input"
                         />
+                        <small>예: 010-1234-5678</small>
                     </div>
 
                     <button 
@@ -690,8 +674,8 @@ const ReservationsPage = () => {
                         disabled={!selectedDate || 
                                  !selectedTime || 
                                  !memberName || 
-                                 !memberId || 
-                                 memberId.length !== 4 ||
+                                 !phoneNumber || 
+                                 phoneNumber.length !== 11 ||
                                  isSubmitting}
                         className={isSubmitting ? 'submitting' : ''}
                     >
@@ -875,9 +859,24 @@ const ReservationsPage = () => {
                     align-items: center;
                 }
                 .input-group {
+                    max-width: 300px;  /* 기존 너비의 절반 정도로 설정 */
+                    margin: 0 auto;    /* 중앙 정렬 */
                     display: flex;
+                    flex-direction: column;
                     gap: 10px;
-                    justify-content: center;
+                }
+                .input-group input {
+                    width: 100%;
+                    padding: 8px;
+                    border: 1px solid #e0e0e0;
+                    border-radius: 6px;
+                    font-size: 0.9rem;
+                }
+                .input-group small {
+                    color: #666;
+                    font-size: 0.8rem;
+                    text-align: left;
+                    margin-top: -5px;
                 }
                 .time-selection {
                     display: flex;
