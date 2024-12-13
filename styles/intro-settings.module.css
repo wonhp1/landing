@@ -46,7 +46,8 @@
 }
 
 .submitButton:disabled {
-    background-color: #ccc;
+    background-color: #cccccc;
+    cursor: not-allowed;
 }
 
 @media (max-width: 768px) {
@@ -62,3 +63,13 @@
         max-width: 150px;
     }
 } 
+
+.error {
+    color: #ff0000;
+    margin: 10px 0;
+}
+
+.success {
+    color: #00aa00;
+    margin: 10px 0;
+}

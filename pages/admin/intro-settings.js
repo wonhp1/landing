@@ -13,6 +13,8 @@ const IntroSettings = () => {
         fontWeight: 'normal'
     });
     const [isLoading, setIsLoading] = useState(false);
+    const [saveError, setSaveError] = useState('');
+    const [saveSuccess, setSaveSuccess] = useState(false);
 
     useEffect(() => {
         // 현재 설정 가져오기
@@ -38,14 +40,21 @@ const IntroSettings = () => {
 
         try {
             setIsLoading(true);
+            setSaveError('');
             const response = await fetch('/api/upload-image', {
                 method: 'POST',
                 body: formData
             });
+            
+            if (!response.ok) {
+                throw new Error('이미지 업로드 실패');
+            }
+            
             const data = await response.json();
             setSettings(prev => ({ ...prev, imageUrl: data.imageUrl }));
         } catch (error) {
             console.error('Error uploading image:', error);
+            setSaveError('이미지 업로드 중 오류가 발생했습니다.');
         } finally {
             setIsLoading(false);
         }
@@ -55,17 +64,24 @@ const IntroSettings = () => {
         e.preventDefault();
         try {
             setIsLoading(true);
-            await fetch('/api/intro-content', {
+            setSaveError('');
+            const response = await fetch('/api/intro-content', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
                 body: JSON.stringify(settings)
             });
-            alert('설정이 저장되었습니다.');
+            
+            if (!response.ok) {
+                throw new Error('설정 저장 실패');
+            }
+
+            setSaveSuccess(true);
+            setTimeout(() => setSaveSuccess(false), 3000); // 3초 후 성공 메시지 제거
         } catch (error) {
             console.error('Error saving settings:', error);
-            alert('설정 저장 중 오류가 발생했습니다.');
+            setSaveError('설정 저장 중 오류가 발생했습니다.');
         } finally {
             setIsLoading(false);
         }
@@ -91,6 +107,7 @@ const IntroSettings = () => {
                         accept="image/*"
                         onChange={handleImageUpload}
                         className={styles.fileInput}
+                        disabled={isLoading}
                     />
                     {settings.imageUrl && (
                         <img 
@@ -142,6 +159,9 @@ const IntroSettings = () => {
                         <option value="bold">굵게</option>
                     </select>
                 </div>
+
+                {saveError && <p className={styles.error}>{saveError}</p>}
+                {saveSuccess && <p className={styles.success}>설정이 저장되었습니다!</p>}
 
                 <button 
                     type="submit" 
